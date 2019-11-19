@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# The app needs to run this pack when no libvips is installed (vips command is
+# not available).
+if [[ ! -x "$(command -v vips)" ]]; then
+  echo "libvips" && exit 0
+else
+  exit 1
+fi
