@@ -1,4 +1,4 @@
-heroku-buildpack-vips
+heroku-buildpack-libvips
 ======================
 
 Install [**libvips**](https://github.com/libvips/libvips) to your Heroku
@@ -6,7 +6,7 @@ instance.
 
 ## Usage
 
-    heroku buildpacks:add https://github.com/Verumex/heroku-buildpack-vips
+    heroku buildpacks:add https://github.com/Verumex/heroku-buildpack-libvips
 
 ## Using a specific version of `libvips`
 
