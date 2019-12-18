@@ -59,7 +59,7 @@ unpack_source_archive() {
 
 configure_and_compile() {
   echo "Compiling libvips" | indent \
-    && ./configure --prefix $VIPS_PATH --disable-shared --disable-static \
+    && ./configure --prefix $VIPS_PATH --enable-shared --disable-static \
       --disable-dependency-tracking --disable-debug --disable-introspection \
       --without-fftw --without-pangoft2 --without-ppm \
       --without-analyze --without-radiance > /dev/null 2>& 1 \
