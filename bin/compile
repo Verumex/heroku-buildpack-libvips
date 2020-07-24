@@ -6,6 +6,7 @@
 set -euo pipefail
 
 BUILD_DIR=$1
+CACHE_DIR="$2/libvips"
 ENV_DIR=$3
 TMP_DIR="$BUILD_DIR/.libvips-tmp"
 BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
@@ -15,5 +16,6 @@ VIPS_PATH="$VENDOR_PATH/vips"
 source "$BP_DIR/bin/buildscript.sh"
 
 ensure_dirs
-build_libvips && cleanup_build
+install_libvips
+cleanup_build
 export_profile
