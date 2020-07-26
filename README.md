@@ -2,7 +2,7 @@ heroku-buildpack-libvips
 ======================
 
 Install [**libvips**](https://github.com/libvips/libvips) to your Heroku
-instance.
+instance, _**without**_ any other dependencies.
 
 ## Usage
 
@@ -19,6 +19,8 @@ variable](https://devcenter.heroku.com/articles/config-vars). For example:
 
 The buildpack will install the latest libvips if the value of `LIBVIPS_VERSION` is
 `latest` or the variable is omitted.
+
+## Caching
 
 The first time you deploy, libvips will be compiled during deployment, adding
 minutes to the deployment time. The installation will be cached, so subsequent
