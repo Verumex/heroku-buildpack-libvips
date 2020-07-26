@@ -14,16 +14,6 @@ ensure_dirs() {
   mkdir -p $CACHE_DIR
 }
 
-install_libvips() {
-  detect_libvips_version
-
-  if [[ -d "$CACHE_DIR/$VERSION" ]]; then
-    restore_cached_build
-  else
-    build_libvips
-  fi
-}
-
 cleanup_build() {
   rm -Rf $TMP_DIR
 }
@@ -33,16 +23,24 @@ export_profile() {
   cp $BP_DIR/.profile.d/* $BUILD_DIR/.profile.d/
 }
 
+install_libvips() {
+  detect_libvips_version
+
+  if [[ -d "$CACHE_DIR/$LIBVIPS_VERSION" ]]; then
+    restore_cached_build
+  else
+    build_libvips
+  fi
+}
+
 detect_libvips_version() {
   [[ ! -d $ENV_DIR ]] && exit 1
 
   if [[ -r "$ENV_DIR/LIBVIPS_VERSION" ]]; then
     export LIBVIPS_VERSION=$(cat "$ENV_DIR/LIBVIPS_VERSION")
-    VERSION=$LIBVIPS_VERSION
   else
-    export LIBVIPS_VERSION="latest"
     echo "Checking for latest libvips version" | indent
-    VERSION=$(detect_latest_version)
+    export LIBVIPS_VERSION=$(detect_latest_version)
   fi
 }
 
@@ -58,7 +56,7 @@ detect_latest_version() {
 
 restore_cached_build() {
   echo "Restoring cached libvips build" | indent
-  cp -R "$CACHE_DIR/$VERSION/." $VIPS_PATH
+  cp -R "$CACHE_DIR/$LIBVIPS_VERSION/." $VIPS_PATH
 }
 
 build_libvips() {
@@ -74,12 +72,12 @@ build_libvips() {
 }
 
 download_libvips() {
-  rm -rf $CACHE_DIR/*
+  rm -Rf $CACHE_DIR/*
 
   local download_path="$TMP_DIR/libvips.tar.gz"
 
-  echo "Downloading libvips ${VERSION} source archive" | indent
-  curl -sL "https://github.com/libvips/libvips/releases/download/v${VERSION}/vips-${VERSION}.tar.gz" -o $download_path
+  echo "Downloading libvips ${LIBVIPS_VERSION} source archive" | indent
+  curl -sL "https://github.com/libvips/libvips/releases/download/v${LIBVIPS_VERSION}/vips-${LIBVIPS_VERSION}.tar.gz" -o $download_path
 }
 
 unpack_source_archive() {
@@ -99,5 +97,5 @@ configure_and_compile() {
 cache_build() {
   echo "Caching binaries" | indent
 
-  cp -R "$VIPS_PATH/." "$CACHE_DIR/$VERSION"
+  cp -R "$VIPS_PATH/." "$CACHE_DIR/$LIBVIPS_VERSION"
 }
