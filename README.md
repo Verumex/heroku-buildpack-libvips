@@ -19,3 +19,7 @@ variable](https://devcenter.heroku.com/articles/config-vars). For example:
 
 The buildpack will install the latest libvips if the value of `LIBVIPS_VERSION` is
 `latest` or the variable is omitted.
+
+The first time you deploy, libvips will be compiled during deployment, adding
+minutes to the deployment time. The installation will be cached, so subsequent
+deploys will not recompile unless the libvips version changes.

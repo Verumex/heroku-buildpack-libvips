@@ -11,6 +11,21 @@ arrow() {
 ensure_dirs() {
   mkdir -p $TMP_DIR
   mkdir -p $VIPS_PATH
+  mkdir -p $CACHE_DIR
+}
+
+install_libvips() {
+  detect_libvips_version
+
+  if [[ -d "$CACHE_DIR/$VERSION" ]]; then
+    restore_cached_build
+  else
+    build_libvips
+  fi
+}
+
+cleanup_build() {
+  rm -Rf $TMP_DIR
 }
 
 export_profile() {
@@ -18,38 +33,53 @@ export_profile() {
   cp $BP_DIR/.profile.d/* $BUILD_DIR/.profile.d/
 }
 
-cleanup_build() {
-  rm -Rf $TMP_DIR
-}
-
 detect_libvips_version() {
   [[ ! -d $ENV_DIR ]] && exit 1
 
   if [[ -r "$ENV_DIR/LIBVIPS_VERSION" ]]; then
     export LIBVIPS_VERSION=$(cat "$ENV_DIR/LIBVIPS_VERSION")
+    VERSION=$LIBVIPS_VERSION
   else
     export LIBVIPS_VERSION="latest"
+    echo "Checking for latest libvips version" | indent
+    VERSION=$(detect_latest_version)
   fi
+}
 
-  echo $LIBVIPS_VERSION
+detect_latest_version() {
+  curl -s https://api.github.com/repos/libvips/libvips/releases/latest \
+    | grep "browser_download_url.*tar.gz" \
+    | head -1 \
+    | cut -d : -f 2,3 \
+    | tr -d \" \
+    | grep "[0-9]*\.[0-9]*\.[0-9]" -o \
+    | head -1
+}
+
+restore_cached_build() {
+  echo "Restoring cached libvips build" | indent
+  cp -R "$CACHE_DIR/$VERSION/." $VIPS_PATH
+}
+
+build_libvips() {
+  echo "Building libvips binary..." | arrow
+
+  download_libvips \
+    && unpack_source_archive \
+    && cd $TMP_DIR \
+    && configure_and_compile \
+    && make -s install > /dev/null 2>& 1 \
+    && cd ~ \
+    && cache_build
 }
 
 download_libvips() {
-  local version=$(detect_libvips_version)
+  rm -rf $CACHE_DIR/*
+
   local download_path="$TMP_DIR/libvips.tar.gz"
 
-  if [[ "latest" == $version ]]; then
-    echo "Downloading latest libvips source archive" | indent
-    curl -s https://api.github.com/repos/libvips/libvips/releases/latest \
-      | grep "browser_download_url.*tar.gz" \
-      | head -1 \
-      | cut -d : -f 2,3 \
-      | tr -d \" \
-      | xargs curl -sL -o $download_path
-  else
-    echo "Downloading libvips ${version} source archive" | indent
-    curl -sL "https://github.com/libvips/libvips/releases/download/v${version}/vips-${version}.tar.gz" -o $download_path
-  fi
+  echo "Downloading libvips ${VERSION} source archive" | indent
+  curl -sL "https://github.com/libvips/libvips/releases/download/v${VERSION}/vips-${VERSION}.tar.gz" -o $download_path
 }
 
 unpack_source_archive() {
@@ -66,12 +96,8 @@ configure_and_compile() {
     && make -s > /dev/null 2>& 1
 }
 
-build_libvips() {
-  echo "Building libvips binary..." | arrow
+cache_build() {
+  echo "Caching binaries" | indent
 
-  download_libvips \
-    && unpack_source_archive \
-    && cd $TMP_DIR \
-    && configure_and_compile \
-    && make -s install > /dev/null 2>& 1
+  cp -R "$VIPS_PATH/." "$CACHE_DIR/$VERSION"
 }
